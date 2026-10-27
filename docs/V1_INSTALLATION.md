@@ -16,7 +16,7 @@ sh openwrt/build-sdk.sh /path/to/matching-openwrt-sdk
 include SDK 的 `usr/include/lotus-hardware`。首次构建应用前先构建硬件服务。
 
 ```sh
-apk --no-network add --allow-untrusted /tmp/lotus-hardware-service-0.1.0-r7.apk
+apk --no-network add --allow-untrusted /tmp/lotus-hardware-service-0.1.0-r8.apk
 ```
 
 正式发布应签名；`--allow-untrusted` 仅用于已核对来源及 SHA-256 的开发包。

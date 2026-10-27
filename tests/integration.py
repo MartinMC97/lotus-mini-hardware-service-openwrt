@@ -496,12 +496,18 @@ class Integration(unittest.TestCase):
         before = time.monotonic()
         self.assertTrue(observer.request("state.get")["ok"])
         self.assertLess(time.monotonic() - before, .5)
-        self.log.seek(0)
-        self.assertLessEqual(len(self.log.readlines()), 100)
+        # stderr is flushed by a separate worker. pread avoids changing the
+        # file offset shared with the daemon while taking a log snapshot.
+        self.assertLessEqual(len(os.pread(self.log.fileno(), 1024 * 1024, 0).splitlines()), 100)
         time.sleep(1.05)
         observer.request("state.get")
-        self.log.seek(0)
-        self.assertIn(b"suppressed_logs", self.log.read())
+        deadline = time.monotonic() + 2
+        while True:
+            logged = os.pread(self.log.fileno(), 1024 * 1024, 0)
+            if b"suppressed_logs" in logged or time.monotonic() >= deadline:
+                break
+            time.sleep(.01)
+        self.assertIn(b"suppressed_logs", logged)
 
     def test_unsafe_parent_rejected(self):
         directory = Path(self.temp.name) / "unsafe"
