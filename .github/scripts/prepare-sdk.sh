@@ -26,4 +26,6 @@ grep -q ' packages .*\^[0-9a-f]' "$sdk/feeds.conf"
 grep -q ' luci .*\^[0-9a-f]' "$sdk/feeds.conf"
 cd "$sdk"
 ./scripts/feeds update -a
-./scripts/feeds install -a
+# Install only the relevant recipes and their dependency closure. Installing
+# every SDK recipe also enables unrelated bootloader/kernel prerequisites.
+./scripts/feeds install alsa-lib luci-base rpcd

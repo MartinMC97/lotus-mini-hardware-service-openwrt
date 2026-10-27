@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: apk-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 jobs:
   build:
