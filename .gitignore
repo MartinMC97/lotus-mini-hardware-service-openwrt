@@ -1,0 +1,12 @@
+/build/
+/openwrt/artifacts/
+/openwrt/feed/*/src/
+__pycache__/
+
+# Keep local development records out of published sources.
+/docs/*.md
+!/docs/API_V1.md
+!/docs/CONTROL_BACKENDS.md
+!/docs/SOFTWARE_PRIVACY.md
+!/docs/V1_INSTALLATION.md
+!/docs/VOLUME_PERSISTENCE.md

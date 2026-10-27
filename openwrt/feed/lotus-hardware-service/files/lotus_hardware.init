@@ -1,0 +1,47 @@
+#!/bin/sh /etc/rc.common
+START=90
+STOP=5
+USE_PROCD=1
+start_service() {
+    . /lib/functions.sh
+    config_load lotus_hardware
+    config_get_bool enabled main enabled 0
+    config_get_bool handoff main handoff_confirmed 0
+    [ "$enabled" = 1 ] || return 0
+    [ "$handoff" = 1 ] || { logger -t lotus-hardwared 'Handoff not confirmed'; return 1; }
+    for name in satellite control_center; do
+        for pid in $(pidof "$name" 2>/dev/null); do
+            tr '\000' '\n' < "/proc/$pid/environ" | grep -qx 'LOTUS_HARDWARE_SOCKET=/var/run/lotus-hardware/control.sock' || {
+                logger -t lotus-hardwared 'Legacy hardware owner still running'; return 1;
+            }
+        done
+    done
+    if pidof lotus-hardwared >/dev/null; then
+        # Re-submit identical procd configuration for an owned running instance.
+        # Returning before emitting an instance would delete it on `start`.
+        (procd_running lotus_hardware) || {
+            logger -t lotus-hardwared 'Unmanaged service already running'; return 1;
+        }
+    elif [ -e /var/run/lotus-hardware/control.sock ]; then
+        logger -t lotus-hardwared 'Socket path exists; inspect before removing'; return 1
+    fi
+    mkdir -p /var/run/lotus-hardware /etc/lotus-hardware
+    chmod 700 /var/run/lotus-hardware /etc/lotus-hardware
+    config_get_bool volume main volume_alsa 1
+    config_get_bool privacy main privacy 1
+    config_get_bool keys main global_keys 1
+    [ "$volume" = 1 ] && [ "$privacy" = 1 ] || {
+        logger -t lotus-hardwared 'First release requires volume and privacy enabled'; return 1;
+    }
+    procd_open_instance
+    procd_set_param command /usr/sbin/lotus-hardwared --controls --handoff-confirmed \
+        --volume-alsa --initialize-volume --privacy --state-dir /etc/lotus-hardware \
+        --socket /var/run/lotus-hardware/control.sock
+    [ "$keys" = 1 ] && procd_append_param command --global-keys
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_set_param term_timeout 5
+    # Do not blindly restart after a crash; clients must be explicitly restarted.
+    procd_close_instance
+}
+service_triggers() { procd_add_reload_trigger lotus_hardware; }
