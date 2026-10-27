@@ -9,6 +9,7 @@ tar -czf "$repo/openwrt/feed/lotus-hardware-service/src/source.tar.gz" -C "$repo
 ln -sfn "$repo/openwrt/feed/lotus-hardware-service" "$sdk/package/lotus-hardware-service"
 cd "$sdk"
 ./scripts/feeds install alsa-lib
+touch .config
 ./scripts/kconfig.pl + .config "$repo/openwrt/sdk.config" > tmp/lotus-hardware.config
 cp tmp/lotus-hardware.config .config
 make defconfig
