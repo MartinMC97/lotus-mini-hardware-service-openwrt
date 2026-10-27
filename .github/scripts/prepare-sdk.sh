@@ -19,7 +19,7 @@ mkdir -p "$sdk"
 tar --zstd -xf "$download_dir/$archive" -C "$sdk" --strip-components=1
 # Keep the SDK's base source revision, and only fetch the two additional feeds
 # required by the daemon and LuCI. feeds.buildinfo pins their release revisions.
-awk '$2 == "base" { print }' "$sdk/feeds.conf.default" > "$sdk/feeds.conf"
+awk '$1 ~ /^src-/ && ($2 == "base" || $3 == "base") { print }' "$sdk/feeds.conf.default" > "$sdk/feeds.conf"
 awk '$2 == "packages" || $2 == "luci" { print }' "$download_dir/feeds.buildinfo" >> "$sdk/feeds.conf"
 grep -q ' base .*\^[0-9a-f]' "$sdk/feeds.conf"
 grep -q ' packages .*\^[0-9a-f]' "$sdk/feeds.conf"
