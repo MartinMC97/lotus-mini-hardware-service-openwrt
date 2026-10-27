@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 PKG_NAME:=lotus-hardware-service
 PKG_VERSION:=0.1.0
-PKG_RELEASE:=7
+PKG_RELEASE:=8
 PKG_LICENSE:=GPL-3.0-only
 PKG_BUILD_PARALLEL:=1
 PKG_FILE_DEPENDS:=$(CURDIR)/src/source.tar.gz

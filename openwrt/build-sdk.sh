@@ -12,5 +12,5 @@ cd "$sdk"
 ./scripts/kconfig.pl + .config "$repo/openwrt/sdk.config" > tmp/lotus-hardware.config
 cp tmp/lotus-hardware.config .config
 make defconfig
-make -j2 package/lotus-hardware-service/compile NO_DEPS=1 CONFIG_AUTOREMOVE= V=s
+make -j2 package/lotus-hardware-service/compile CONFIG_AUTOREMOVE= V=s
 find bin/packages -name 'lotus-hardware-service-*.apk' -exec cp {} "$repo/openwrt/artifacts/" \;

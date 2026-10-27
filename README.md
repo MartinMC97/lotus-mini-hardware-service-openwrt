@@ -13,6 +13,12 @@
 软件隐私策略和协作式保护边界见 [软件隐私](docs/SOFTWARE_PRIVACY.md)。
 安装、SDK 构建、应用接入和回滚见 [第一版使用指南](docs/V1_INSTALLATION.md)。
 
+GitHub Actions 在推送到 `main`、提交 PR 或手动触发时运行主机测试，并用固定
+SHA-256 的官方 OpenWrt 25.12.0 rockchip/armv8 SDK 构建 AArch64 musl APK。
+构建会安装所需依赖；APK、构建来源和 SHA-256 校验文件保存在 Actions artifacts。
+推送与软件包版本一致的 `v<版本>-r<修订>` 标签会自动发布 GitHub Release 附件。
+开发 APK 未签名；此流程只构建用户空间包，不构建内核或整机固件。
+
 目标组件：
 
 - `lotus-hardwared`：硬件服务与设备后端。

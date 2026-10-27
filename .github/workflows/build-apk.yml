@@ -1,0 +1,86 @@
+name: Build OpenWrt APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: hardware-service
+          persist-credentials: false
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential file flex bison gawk gettext git libncurses-dev libssl-dev python3 python3-setuptools rsync unzip wget zstd
+      - name: Check release version
+        working-directory: hardware-service
+        run: |
+          recipe=openwrt/feed/lotus-hardware-service/Makefile
+          version=$(sed -n 's/^PKG_VERSION:=//p' "$recipe")
+          release=$(sed -n 's/^PKG_RELEASE:=//p' "$recipe")
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            test "$GITHUB_REF_NAME" = "v$version-r$release"
+          fi
+      - name: Run host tests
+        run: make -C hardware-service test
+      - name: Prepare pinned OpenWrt 25.12.0 SDK
+        run: sh hardware-service/.github/scripts/prepare-sdk.sh "$RUNNER_TEMP/openwrt-sdk"
+      - name: Build AArch64 musl APK and its dependencies
+        run: sh hardware-service/openwrt/build-sdk.sh "$RUNNER_TEMP/openwrt-sdk"
+      - name: Record build provenance and checksums
+        working-directory: hardware-service/openwrt/artifacts
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          test -n "$(find . -maxdepth 1 -name 'lotus-hardware-service-*.apk' -print -quit)"
+          printf 'SDK=OpenWrt 25.12.0\nTARGET=rockchip/armv8\nSOURCE_COMMIT=%s\n' "$SOURCE_COMMIT" > BUILDINFO
+          sha256sum ./*.apk BUILDINFO > SHA256SUMS
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lotus-hardware-service-apk
+          path: hardware-service/openwrt/artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: lotus-hardware-service-apk
+          path: release
+      - name: Publish APK release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cd release
+          sha256sum --check SHA256SUMS
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" \
+              --notes 'Lotus Mini hardware service. Built with the pinned OpenWrt 25.12.0 rockchip/armv8 SDK. Development APKs are unsigned; verify SHA256SUMS before installing.'
+          fi
+          gh release upload "$RELEASE_TAG" ./*.apk BUILDINFO SHA256SUMS --clobber

@@ -1,7 +1,7 @@
 # 第一版使用与移植指南
 
 适用 Lotus Mini / OpenWrt 25.12、AArch64 musl、现有 ALSA `LotusMini` 声卡。
-服务 0.1.0-r7；客户端为 SDK 导出的 C++ header-only 接口。
+服务 0.1.0-r8；客户端为 SDK 导出的 C++ header-only 接口。
 没有网络端口、HA 实体、PCM 或提示音素材；业务由调用方实现。
 
 ## 构建与安装
