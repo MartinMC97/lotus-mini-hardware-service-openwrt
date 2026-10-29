@@ -39,7 +39,7 @@ jobs:
           fi
       - name: Run host tests
         run: make -C hardware-service test
-      - name: Prepare pinned OpenWrt 25.12.0 SDK
+      - name: Prepare pinned OpenWrt 25.12.5 SDK
         run: sh hardware-service/.github/scripts/prepare-sdk.sh "$RUNNER_TEMP/openwrt-sdk"
       - name: Build AArch64 musl APK and its dependencies
         run: sh hardware-service/openwrt/build-sdk.sh "$RUNNER_TEMP/openwrt-sdk"
@@ -49,7 +49,7 @@ jobs:
           SOURCE_COMMIT: ${{ github.sha }}
         run: |
           test -n "$(find . -maxdepth 1 -name 'lotus-hardware-service-*.apk' -print -quit)"
-          printf 'SDK=OpenWrt 25.12.0\nTARGET=rockchip/armv8\nSOURCE_COMMIT=%s\n' "$SOURCE_COMMIT" > BUILDINFO
+          printf 'SDK=OpenWrt 25.12.5\nTARGET=rockchip/armv8\nSOURCE_COMMIT=%s\n' "$SOURCE_COMMIT" > BUILDINFO
           sha256sum ./*.apk BUILDINFO > SHA256SUMS
       - name: Upload APK artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -81,6 +81,6 @@ jobs:
           sha256sum --check SHA256SUMS
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" \
-              --notes 'Lotus Mini hardware service. Built with the pinned OpenWrt 25.12.0 rockchip/armv8 SDK. Development APKs are unsigned; verify SHA256SUMS before installing.'
+              --notes 'Lotus Mini hardware service. Built with the pinned OpenWrt 25.12.5 rockchip/armv8 SDK. Development APKs are unsigned; verify SHA256SUMS before installing.'
           fi
           gh release upload "$RELEASE_TAG" ./*.apk BUILDINFO SHA256SUMS --clobber

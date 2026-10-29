@@ -1,7 +1,7 @@
 # 第一版使用与移植指南
 
 适用 Lotus Mini / OpenWrt 25.12、AArch64 musl、现有 ALSA `LotusMini` 声卡。
-服务 0.1.0-r8；客户端为 SDK 导出的 C++ header-only 接口。
+服务 0.1.0-r9；客户端为 SDK 导出的 C++ header-only 接口。
 没有网络端口、HA 实体、PCM 或提示音素材；业务由调用方实现。
 
 ## 构建与安装
@@ -16,7 +16,7 @@ sh openwrt/build-sdk.sh /path/to/matching-openwrt-sdk
 include SDK 的 `usr/include/lotus-hardware`。首次构建应用前先构建硬件服务。
 
 ```sh
-apk --no-network add --allow-untrusted /tmp/lotus-hardware-service-0.1.0-r8.apk
+apk --no-network add --allow-untrusted /tmp/lotus-hardware-service-0.1.0-r9.apk
 ```
 
 正式发布应签名；`--allow-untrusted` 仅用于已核对来源及 SHA-256 的开发包。

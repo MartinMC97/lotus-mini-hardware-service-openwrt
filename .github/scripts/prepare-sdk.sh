@@ -1,14 +1,14 @@
 #!/bin/sh
-# Prepare the same pinned user-space SDK used by the original Lotus Mini builds.
+# Prepare the pinned OpenWrt 25.12.5 user-space SDK for Lotus Mini builds.
 set -eu
 [ "$#" = 1 ] || { echo 'usage: sh prepare-sdk.sh /absolute/sdk/path' >&2; exit 2; }
 sdk=$1
 case "$sdk" in /*) ;; *) echo 'SDK path must be absolute' >&2; exit 2 ;; esac
 [ ! -e "$sdk" ] || { echo 'SDK destination already exists' >&2; exit 2; }
-base=https://downloads.openwrt.org/releases/25.12.0/targets/rockchip/armv8
-archive=openwrt-sdk-25.12.0-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
-archive_sha=8775b11b55bbc139af92abf692ea5248dfa364581fa0e97ee79f66ff24ce2c4d
-feeds_sha=724449cc6d7e8cdff082c559b2de63fdb4f90149022d620635083bba78f55d77
+base=https://downloads.openwrt.org/releases/25.12.5/targets/rockchip/armv8
+archive=openwrt-sdk-25.12.5-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+archive_sha=59194a023968398af64bfa7d8bc3eac322641f6dc9cdbade28a4d9dd41866eba
+feeds_sha=e11279b01e7fea7f7d399e25e969d9382be6891071cbc1225804195224b27b52
 download_dir=$(mktemp -d "${TMPDIR:-/tmp}/lotus-sdk.XXXXXX")
 trap 'rm -rf "$download_dir"' EXIT HUP INT TERM
 curl --fail --location --retry 3 --output "$download_dir/$archive" "$base/$archive"
